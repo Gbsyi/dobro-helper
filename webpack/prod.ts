@@ -9,7 +9,7 @@ export default merge(base, {
         name: 'prod',
     },
     output: {
-        path: path.resolve(".", "userscripts"),
+        path: path.resolve(".", "dist"),
         filename: "dobro-helper.js",
     },
     watchOptions: {

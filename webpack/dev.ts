@@ -9,8 +9,8 @@ export default merge(base, {
         name: 'dev',
     },
     output: {
-        path: path.resolve(".", "userscripts"),
-        filename: "index.dev.user.js",
+        path: path.resolve(".", "dist"),
+        filename: "dobro-helper.dev.js",
     },
     devtool: 'eval-source-map',
     watch: true,

@@ -104,4 +104,4 @@ typings/
 
 # Custom files
 /dist/*.js
-!/dist/dobro-helper.js
+!/dist/dobro-helper.user.js

@@ -10,7 +10,7 @@ export default merge(base, {
     },
     output: {
         path: path.resolve(".", "dist"),
-        filename: "dobro-helper.js",
+        filename: "dobro-helper.user.js",
     },
     watchOptions: {
         ignored: /node_modules/,

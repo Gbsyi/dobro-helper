@@ -13,7 +13,20 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 607:
+/***/ 115:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.throwError = throwError;
+function throwError(e) {
+    throw new Error();
+}
+
+
+/***/ }),
+
+/***/ 156:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -26,34 +39,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const common_1 = __webpack_require__(527);
-const database_1 = __webpack_require__(563);
-const question_form_1 = __webpack_require__(620);
-const retrievers_1 = __webpack_require__(429);
-const state_1 = __webpack_require__(263);
+const common_1 = __webpack_require__(115);
+const database_1 = __webpack_require__(975);
+const question_form_1 = __webpack_require__(465);
+const retrievers_1 = __webpack_require__(265);
+const state_1 = __webpack_require__(989);
+const router_1 = __importDefault(__webpack_require__(555));
 function main() {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const db = yield database_1.DobroDatabase.CreateDatabase();
-        const isTestPage = document.querySelector('#lk-root > div.lk-root__content > section > div.content-box.mod-quiz > h3') != null;
-        if (isTestPage) {
-            console.log('Обрабатывается страница теста');
-            yield handleTestPage(db);
-            return;
-        }
-        const resultsObjects = document.querySelector('#lk-root > div.lk-root__content > section > div.content-box.mod-quiz > div.content-box__header > h3');
-        if (resultsObjects == null) {
-            console.log('Помощник не активен');
-            return;
-        }
-        if ((_a = resultsObjects.textContent) === null || _a === void 0 ? void 0 : _a.includes('Тест не завершен')) {
-            console.log('Получаем список ошибок');
-            yield handleErrorsPage(db);
-            console.log('Успех');
-            return;
-        }
-        console.log('Помощник не активен');
+        (0, router_1.default)();
     });
 }
 function handleTestPage(db) {
@@ -150,21 +149,136 @@ main();
 
 /***/ }),
 
-/***/ 527:
+/***/ 243:
 /***/ ((__unused_webpack_module, exports) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.throwError = void 0;
-function throwError(e) {
-    throw new Error();
+exports["default"] = pageHandler;
+function pageHandler() {
+    console.log("I handle test page");
 }
-exports.throwError = throwError;
 
 
 /***/ }),
 
-/***/ 563:
+/***/ 265:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getTestName = getTestName;
+exports.getCurrentQuestionName = getCurrentQuestionName;
+const common_1 = __webpack_require__(115);
+function getTestName() {
+    var _a;
+    const testTitle = (_a = document.querySelector('#lk-root > div.lk-root__content > section > div.section-title > h1')) === null || _a === void 0 ? void 0 : _a.textContent;
+    if (!testTitle) {
+        (0, common_1.throwError)(new Error('Тест не найден'));
+    }
+    return testTitle.trim();
+}
+function getCurrentQuestionName() {
+    var _a, _b;
+    const questionName = (_b = (_a = document.querySelector('#lk-root > div.lk-root__content > section > div.content-box.mod-quiz > h3')) === null || _a === void 0 ? void 0 : _a.textContent) !== null && _b !== void 0 ? _b : (0, common_1.throwError)(new Error('Вопрос не найден'));
+    if (!questionName) {
+        (0, common_1.throwError)(new Error('Тест не найден'));
+    }
+    return questionName.trim();
+}
+
+
+/***/ }),
+
+/***/ 465:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.QuestionForm = void 0;
+const common_1 = __webpack_require__(115);
+const retrievers_1 = __webpack_require__(265);
+class QuestionForm {
+    constructor() {
+        this.answerInputs = {};
+        this.testName = (0, retrievers_1.getTestName)();
+        this.questionName = (0, retrievers_1.getCurrentQuestionName)();
+        const form = document.getElementById('learn_test_answer_form');
+        this.isMultiple = form['answer[]']
+            ? true
+            : form['answer']
+                ? false
+                : (0, common_1.throwError)(new Error('Встречен неподдерживаемый вид ответа'));
+        getFormInputs(form).forEach((item) => {
+            const input = item;
+            const answerLabel = input.labels != null ? input.labels[0].innerText : (0, common_1.throwError)(new Error('Не удалось определить вариант ответа на форме'));
+            this.answerInputs[answerLabel] = input;
+        });
+        form.addEventListener('change', () => {
+            var _a;
+            const answers = getFormInputs(form)
+                .filter(item => item.checked)
+                .map(item => item.labels != null
+                ? item.labels[0].innerText
+                : (0, common_1.throwError)(new Error('Не удалось определить вариант ответа на форме')));
+            (_a = this.onFormChanged) === null || _a === void 0 ? void 0 : _a.call(this, answers);
+        });
+    }
+    static getInstance() {
+        if (this.Instance === null) {
+            this.Instance = new QuestionForm();
+        }
+        return this.Instance;
+    }
+    applyValue(value) {
+        const question = value.questions[this.questionName];
+        for (const [answerName, answerInput] of Object.entries(this.answerInputs)) {
+            answerInput.checked = question.answer.includes(answerName);
+        }
+    }
+}
+exports.QuestionForm = QuestionForm;
+QuestionForm.Instance = null;
+function getFormInputs(form) {
+    const answers = (form['answer[]'] || form['answer']);
+    return Array.from(answers);
+}
+
+
+/***/ }),
+
+/***/ 555:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = router;
+const question_page_handler_1 = __importDefault(__webpack_require__(243));
+const routeHandlers = [
+    {
+        route: /courses\/.*\/test.*/,
+        handle: question_page_handler_1.default
+    }
+];
+function router() {
+    const path = URL.parse(document.documentURI);
+    if (!path)
+        throw new Error("Ошибка чтения маршрута");
+    var route = path.pathname;
+    for (const routeHandler of routeHandlers) {
+        if (route.match(routeHandler.route)) {
+            routeHandler.handle();
+        }
+    }
+}
+
+
+/***/ }),
+
+/***/ 975:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -223,100 +337,14 @@ class DobroDatabase {
         });
     }
 }
+exports.DobroDatabase = DobroDatabase;
 DobroDatabase.STORE_NAME = 'dobro';
 DobroDatabase.TESTS_STORE_KEY = 'tests';
-exports.DobroDatabase = DobroDatabase;
 
 
 /***/ }),
 
-/***/ 620:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.QuestionForm = void 0;
-const common_1 = __webpack_require__(527);
-const retrievers_1 = __webpack_require__(429);
-class QuestionForm {
-    constructor() {
-        this.answerInputs = {};
-        this.testName = (0, retrievers_1.getTestName)();
-        this.questionName = (0, retrievers_1.getCurrentQuestionName)();
-        const form = document.getElementById('learn_test_answer_form');
-        this.isMultiple = form['answer[]']
-            ? true
-            : form['answer']
-                ? false
-                : (0, common_1.throwError)(new Error('Встречен неподдерживаемый вид ответа'));
-        getFormInputs(form).forEach((item) => {
-            const input = item;
-            const answerLabel = input.labels != null ? input.labels[0].innerText : (0, common_1.throwError)(new Error('Не удалось определить вариант ответа на форме'));
-            this.answerInputs[answerLabel] = input;
-        });
-        form.addEventListener('change', () => {
-            var _a;
-            const answers = getFormInputs(form)
-                .filter(item => item.checked)
-                .map(item => item.labels != null
-                ? item.labels[0].innerText
-                : (0, common_1.throwError)(new Error('Не удалось определить вариант ответа на форме')));
-            (_a = this.onFormChanged) === null || _a === void 0 ? void 0 : _a.call(this, answers);
-        });
-    }
-    static getInstance() {
-        if (this.Instance === null) {
-            this.Instance = new QuestionForm();
-        }
-        return this.Instance;
-    }
-    applyValue(value) {
-        const question = value.questions[this.questionName];
-        for (const [answerName, answerInput] of Object.entries(this.answerInputs)) {
-            answerInput.checked = question.answer.includes(answerName);
-        }
-    }
-}
-QuestionForm.Instance = null;
-exports.QuestionForm = QuestionForm;
-function getFormInputs(form) {
-    const answers = (form['answer[]'] || form['answer']);
-    return Array.from(answers);
-}
-
-
-/***/ }),
-
-/***/ 429:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCurrentQuestionName = exports.getTestName = void 0;
-const common_1 = __webpack_require__(527);
-function getTestName() {
-    var _a;
-    const testTitle = (_a = document.querySelector('#lk-root > div.lk-root__content > section > div.section-title > h1')) === null || _a === void 0 ? void 0 : _a.textContent;
-    if (!testTitle) {
-        (0, common_1.throwError)(new Error('Тест не найден'));
-    }
-    return testTitle.trim();
-}
-exports.getTestName = getTestName;
-function getCurrentQuestionName() {
-    var _a, _b;
-    const questionName = (_b = (_a = document.querySelector('#lk-root > div.lk-root__content > section > div.content-box.mod-quiz > h3')) === null || _a === void 0 ? void 0 : _a.textContent) !== null && _b !== void 0 ? _b : (0, common_1.throwError)(new Error('Вопрос не найден'));
-    if (!questionName) {
-        (0, common_1.throwError)(new Error('Тест не найден'));
-    }
-    return questionName.trim();
-}
-exports.getCurrentQuestionName = getCurrentQuestionName;
-
-
-/***/ }),
-
-/***/ 263:
+/***/ 989:
 /***/ (function(__unused_webpack_module, exports) {
 
 
@@ -407,7 +435,7 @@ _DobroState_value = new WeakMap(), _DobroState_target = new WeakMap();
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__(607);
+/******/ 	var __webpack_exports__ = __webpack_require__(156);
 /******/ 	
 /******/ })()
 ;

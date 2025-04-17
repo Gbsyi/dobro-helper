@@ -1,3 +1,4 @@
+import { ElementAccessor } from "../helpers/element-accessors";
 import { TestInfo } from "../models/test-info";
 import { throwError } from "./common";
 import { getCurrentQuestionName, getTestName } from "./retrievers";
@@ -19,7 +20,7 @@ export class QuestionForm {
         this.testName = getTestName();
         this.questionName = getCurrentQuestionName();   
 
-        const form = document.getElementById('learn_test_answer_form') as HTMLFormElement;
+        const form = ElementAccessor.TestPage.AnswerForm();
         this.isMultiple = form['answer[]']
             ? true
             : form['answer']

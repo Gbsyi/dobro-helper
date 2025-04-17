@@ -1,8 +1,10 @@
 import { TestInfo } from "../models/test-info";
 
 export class DobroDatabase {
-    private db: IDBDatabase;
+    private static Instance: DobroDatabase | null = null;
 
+    private db: IDBDatabase;
+    
     private static STORE_NAME = 'dobro';
     private static TESTS_STORE_KEY = 'tests';
 
@@ -10,7 +12,18 @@ export class DobroDatabase {
         this.db = db;
     }
     
-    public static CreateDatabase(): Promise<DobroDatabase> {
+    public static async GetInstance(): Promise<DobroDatabase> {
+        if (this.Instance === null) {
+            this.Instance = await this.CreateDatabase();
+        }
+
+        return this.Instance;
+    }
+
+    private static CreateDatabase(): Promise<DobroDatabase> {
+        if (this.Instance != null) {
+
+        } 
         return new Promise((resolve, reject) => {
             if (!('indexedDB' in window)) reject('DB not supported');
             

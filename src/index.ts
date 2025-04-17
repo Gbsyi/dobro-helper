@@ -3,31 +3,11 @@ import { DobroDatabase } from "./lib/database";
 import { QuestionForm } from "./lib/question-form";
 import { getCurrentQuestionName, getTestName } from "./lib/retrievers";
 import { DobroState } from "./lib/state";
-import { Question, TestInfo } from "./models/test-info";
+import { TestInfo } from "./models/test-info";
+import { handleCurrentRoute } from "./route-handlers/router";
 
 async function main() {
-    const db = await DobroDatabase.CreateDatabase();
-    const isTestPage = document.querySelector('#lk-root > div.lk-root__content > section > div.content-box.mod-quiz > h3') != null;
-    if (isTestPage) {
-        console.log('Обрабатывается страница теста');
-        await handleTestPage(db);
-        return;
-    }
-    
-    const resultsObjects = document.querySelector('#lk-root > div.lk-root__content > section > div.content-box.mod-quiz > div.content-box__header > h3');
-    if (resultsObjects == null) {
-        console.log('Помощник не активен')
-        return;
-    }
-
-    if (resultsObjects.textContent?.includes('Тест не завершен')) {
-        console.log('Получаем список ошибок');
-        await handleErrorsPage(db);
-        console.log('Успех');
-        return;
-    }
-
-    console.log('Помощник не активен');
+    handleCurrentRoute();
 }
 
 async function handleTestPage(db: DobroDatabase) {
